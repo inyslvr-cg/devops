@@ -1,0 +1,48 @@
+---
+- name: Install nodejs app
+  hosts: all
+  become: yes
+  gather_facts: yes
+  vars:
+    ansible_host_key_checking: false
+    local_home: "{{ lookup('env','HOME') }}"
+    instance_ids:
+      - '{{ instance_id }}'
+
+  tasks:
+    # Install docker   
+    - name: Install docker
+      yum:
+        name: docker
+        state: latest
+
+    # Start and enable docker
+    - name: Start and enable docker
+      ansible.builtin.systemd_service:
+        name: docker
+        state: started
+        enabled: true
+      
+    - name: Adding ec2-user to docker group
+      ansible.builtin.user:
+        name: ec2-user
+        shell: /bin/bash
+        groups: docker
+        append: yes    
+
+    - name: Build docker image
+      community.docker.docker_image:
+        name: nodejsappimage
+        build:
+          path: ../docker
+        args:
+        listen_port: 3000
+        source: build    
+
+    - name: Re-create a redis container
+      community.docker.docker_container:
+        name: nodejsapp
+        image: nodejsappimage
+        state: started
+        exposed_ports:
+        - 3000:3000

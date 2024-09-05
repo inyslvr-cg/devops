@@ -62,3 +62,11 @@ resource "aws_instance" "nginx_web" {
   key_name               = "nginx_web_key"
   user_data              = file("./userdata.tpl")
 }
+
+resource "null_resource" "app_deploy" {
+  provisioner "local-exec" {
+    command    = "ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook ./ansible.yml -i ${aws_instance.nginx_web.private_ip}, -u ec2-user -e region=${var.region}
+    on_failure = continue
+  }
+  depends_on = [aws_instance.nginx_web]
+}

@@ -8,6 +8,11 @@ output "instance_public_ip" {
   value       = aws_instance.nginx_web.public_ip
 }
 
+output "instance_private_ip" {
+  description = "Private IP address of the EC2 instance"
+  value       = aws_instance.nginx_web.private_ip
+}
+
 output "instance_public_DNS" {
   description = "Public IP address of the EC2 instance"
   value       = aws_instance.nginx_web.public_dns
